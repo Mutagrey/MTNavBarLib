@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-public var images = ["1", "2", "3", "4", "5", "6"]
 
 /// `NavSettings` settings
 ///
@@ -31,7 +30,6 @@ public struct NavSettings {
     let refreshHeight: CGFloat
     let maxHeight: CGFloat
     let enableOpacity: Bool
-    
     
     public init (topHeaderHeight: CGFloat = 80, progressRatio: CGFloat = 1/90, cornerRadius: CGFloat = 10, refreshHeight: CGFloat = 140, maxHeight: CGFloat = UIScreen.main.bounds.height/2.3 + (UIApplication.shared.windows.first?.safeAreaInsets.top ?? 40), enableOpacity: Bool = false) {
         self.topHeaderHeight = topHeaderHeight
@@ -75,8 +73,7 @@ public struct MTNavView<Content: View, Header: View, TopBar: View>: View {
                             .frame(height: settings.maxHeight - topEdge)
                             .offset(y: -offset)
                             .zIndex(1)
-                        .overlay(Text("\( getTopBarOpacity(topEdge: topEdge))").foregroundColor(.white))
-    //                        .id(scrollUpID)
+                            .id("TopNavBar")
                         content
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
@@ -89,68 +86,11 @@ public struct MTNavView<Content: View, Header: View, TopBar: View>: View {
             .navigationBarHidden(true)
         }
     }
-    
-    func defaultSettings() -> NavSettings {
-        return .init()
-    }
 }
 
 struct MTNavView_Previews: PreviewProvider {
-    
     static var previews: some View {
-        
-        MTNavView(settings: .init(), offset: .constant(0)) {
-            TabView{
-                ForEach(images, id:\.self) { item in
-                    GeometryReader{ geo in
-                        Image(item, bundle: .module)
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: geo.frame(in: .global).width, height: geo.frame(in: .global).height, alignment: .center)
-                            .cornerRadius(0)
-                    }
-                    .tag(item)
-                }
-            }
-            .tabViewStyle(.page(indexDisplayMode: .always))
-        } topBar: {
-            HStack {
-                Image("4", bundle: .module)
-                    .resizable()
-                    .frame(width: 55, height: 55)
-//                    .padding()
-                    .overlay(Circle().stroke())
-                    .clipShape(Circle())
-                    .padding()
-                VStack(alignment: .leading, spacing: 4.0){
-                    Text("Title")
-                        .font(.title)
-    //                    .padding()
-                    Text("Subtitle")
-                        .font(.title2)
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding()
-
-        } content: {
-            LazyVStack{
-                ForEach(0 ..< 50) { item in
-                    NavigationLink {
-                        Text("\(item)")
-                            .padding()
-                            .navigationTitle("title: \(item)")
-                            .navigationBarTitleDisplayMode(.inline)
-                    } label: {
-                        Text("\(item)")
-                            .padding()
-                    }
-                }
-            }
-            .background(Color.green)
-        }
-        .background(Color.green)
-
+        ExampleMTNavBar()
     }
 }
 
@@ -171,7 +111,7 @@ extension MTNavView {
                     .frame(height: getTopBarHeight(topEdge: topEdge)  )
 
                     .frame(maxWidth: .infinity)//, maxHeight: .infinity)
-                                    .padding(.top, topEdge)
+                    .padding(.top, topEdge)
                     .background(BlurView(effect: .systemUltraThinMaterial).opacity(getTopBarOpacity(topEdge: topEdge)).ignoresSafeArea())
 //                    .offset(y: topEdge)
                 
