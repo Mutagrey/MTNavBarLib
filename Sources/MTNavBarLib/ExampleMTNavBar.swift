@@ -13,6 +13,10 @@ public struct ExampleMTNavBar: View {
     
     @State private var offset: CGFloat = 0
     
+    public init() {
+        
+    }
+    
     public var body: some View {
         MTNavView(settings: .init(), offset: $offset) {
             TabView{
