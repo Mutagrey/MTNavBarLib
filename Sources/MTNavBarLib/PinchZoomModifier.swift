@@ -12,7 +12,6 @@ struct PinchZoomModifier: ViewModifier {
     @State private var scale: CGFloat = 0
     @State private var scalePosition: CGPoint = .zero
     @SceneStorage("isZooming") var isZooming: Bool = false
-//    @Binding var zIndex: CGFloat
     
     func body(content: Content) -> some View {
         content
@@ -30,11 +29,6 @@ struct PinchZoomModifier: ViewModifier {
         // make it on top
             .zIndex(scale != 0 ? 1000 : 0)
             .onChange(of: scale) { newValue in
-//                if scale != 0 {
-//                    zIndex = 1000
-//                } else {
-//                    zIndex = 0
-//                }
                 isZooming = (scale != 0 && offset != .zero) //true
                 if scale == -1 {
                     // giving some time to finish animation

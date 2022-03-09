@@ -12,32 +12,30 @@ import SwiftUI
 /// ```
 /// public struct NavSettings {
 ///
-///     let topHeaderHeight: CGFloat = 80
-///     let progressRatio: CGFloat = 1/90
+///     let minHeight: CGFloat = 80
+///     let maxHeight: CGFloat = UIScreen.main.bounds.height/2.3
 ///     let cornerRadius: CGFloat = 10
 ///     let refreshHeight: CGFloat = 140
-///     let maxHeight: CGFloat = UIScreen.main.bounds.height/2.3 + (UIApplication.shared.windows.first?.safeAreaInsets.top ?? 40)
-///     let enableOpacity: Bool = false
+///     let ignoreSafeArea: Bool = true
 ///
 /// }
 ///```
 ///
 public struct NavSettings {
     
-    let topHeaderHeight: CGFloat
-    let progressRatio: CGFloat
+    let minHeight: CGFloat
+    let maxHeight: CGFloat
+
     let cornerRadius: CGFloat
     let refreshHeight: CGFloat
-    let maxHeight: CGFloat
-    let enableOpacity: Bool
+    let ignoreSafeArea: Bool
     
-    public init (topHeaderHeight: CGFloat = 80, progressRatio: CGFloat = 1/90, cornerRadius: CGFloat = 10, refreshHeight: CGFloat = 140, maxHeight: CGFloat = UIScreen.main.bounds.height/2.3 + (UIApplication.shared.windows.first?.safeAreaInsets.top ?? 40), enableOpacity: Bool = false) {
-        self.topHeaderHeight = topHeaderHeight
-        self.progressRatio = progressRatio
+    public init (minHeight: CGFloat = 80, maxHeight: CGFloat = UIScreen.main.bounds.height/2.3, cornerRadius: CGFloat = 0, refreshHeight: CGFloat = 140, ignoreSafeArea: Bool = true) {
+        self.minHeight = minHeight
         self.cornerRadius = cornerRadius
         self.refreshHeight = refreshHeight
-        self.maxHeight = maxHeight
-        self.enableOpacity = enableOpacity
+        self.maxHeight = maxHeight //+ (UIApplication.shared.windows.first?.safeAreaInsets.top ?? 40)
+        self.ignoreSafeArea = ignoreSafeArea
     }
 }
 
@@ -52,127 +50,167 @@ public struct MTNavView<Content: View, Header: View, TopBar: View>: View {
     let header: Header
     let topBar: TopBar
     var settings: NavSettings = .init()
-        
+
     @Binding var offset: CGFloat
+    @Binding var refresh: Bool
+    @State private var frozen: Bool = false
     
-    public init(settings: NavSettings, offset: Binding<CGFloat>, @ViewBuilder header: () -> Header, @ViewBuilder topBar: () -> TopBar, @ViewBuilder content: () -> Content) {
+    public init(settings: NavSettings, offset: Binding<CGFloat>, refresh: Binding<Bool>, @ViewBuilder header: () -> Header, @ViewBuilder topBar: () -> TopBar, @ViewBuilder content: () -> Content) {
         self.content = content()
         self.header = header()
         self.topBar = topBar()
         self.settings = settings
         self._offset = offset
+        self._refresh = refresh
     }
     
     public var body: some View {
-        NavigationView {
             GeometryReader { proxy in
                 let topEdge = proxy.safeAreaInsets.top
                 ScrollView(.vertical, showsIndicators: false) {
                     VStack(spacing: 0){
-                        topNavBar(topEdge: topEdge)
-                            .frame(height: settings.maxHeight - topEdge)
+                        headerView(topEdge: topEdge)
+                            .frame(height: settings.maxHeight)
                             .offset(y: -offset)
                             .zIndex(1)
                             .id("TopNavBar")
+                        refreshButton(topEdge: topEdge)
                         content
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
                     .modifier(OffsetModifier(offset: $offset, coordinateSpace: .named("SCROLL_Sticky_MTNavBar")))
                 }
                 .coordinateSpace(name: "SCROLL_Sticky_MTNavBar")
+                .overlay(topBarView(topEdge: topEdge), alignment: .top)
                 .ignoresSafeArea(.all, edges: .top)
-                
             }
             .navigationBarHidden(true)
-        }
+            .onChange(of: offset) { newValue in
+                DispatchQueue.main.async {
+                    refreshStatus(offset)
+                }
+            }
     }
 }
 
 struct MTNavView_Previews: PreviewProvider {
     static var previews: some View {
-        ExampleMTNavBar()
+        NavigationView{
+            ExampleMTNavBar()
+        }
     }
 }
 
+// MARK: - Elements View
 extension MTNavView {
-    private func topNavBar(topEdge: CGFloat) -> some View {
-        VStack{
-            GeometryReader{ geo in
+    
+    private func headerView(topEdge: CGFloat) -> some View {
+        VStack(spacing: 0){
+            VStack(spacing: 0){
+                if !settings.ignoreSafeArea {
+                    BlurView(effect: .systemUltraThinMaterial)
+                        .frame(height: topEdge)
+                }
                 header
-                    .frame(width: geo.frame(in: .global).width, height: geo.frame(in: .global).height, alignment: .bottom)
-                                    .cornerRadius(getCornerRadius(topEdge: topEdge))
             }
-            .opacity(getOpacity())
-            .frame(height: getHeaderHeight(topEdge: topEdge), alignment: .bottom)
-//            .offset(y: -topEdge)
-            .overlay(
-                topBar
-                    .opacity(getTopBarOpacity(topEdge: topEdge))
-                    .frame(height: getTopBarHeight(topEdge: topEdge)  )
-
-                    .frame(maxWidth: .infinity)//, maxHeight: .infinity)
-                    .padding(.top, topEdge)
-                    .background(BlurView(effect: .systemUltraThinMaterial).opacity(getTopBarOpacity(topEdge: topEdge)).ignoresSafeArea())
-//                    .offset(y: topEdge)
-                
-                , alignment: .top)
-            Spacer()
+            .blur(radius: getProgress(topEdge: topEdge) < 0 ? -getProgress(topEdge: topEdge) * 10 : 0, opaque: true)
+//            .cornerRadius(getCornerRadius(topEdge: topEdge))
+//            .opacity(getOpacity())
+            .frame(height: getHeaderHeight(topEdge: topEdge))
+            Spacer(minLength: 0)
         }
         
     }
+    
+    private func topBarView(topEdge: CGFloat) -> some View {
+        GeometryReader { geo in
+            topBar
+                .padding(.top, topEdge )
+                .background(
+                    BlurView(effect: .systemUltraThinMaterial)
+                        .blur(radius: getProgress(topEdge: topEdge) < 0 ? -getProgress(topEdge: topEdge) * 10 : 0, opaque: true)
+                )
+                .opacity(getProgress(topEdge: topEdge))
+                .offset(y: geo.frame(in: .global).height * getProgress(topEdge: topEdge) - geo.frame(in: .global).height)
+        }
+    }
 }
 
+// MARK: - Calculations
 extension MTNavView {
-//    func refreshStatus(_ curOffset: CGFloat) {
-//        if curOffset == 0 {
-//            self.frozen = false
-//        }
-//        if curOffset >= refreshHeight && !frozen {
-//            self.frozen = true
-//            self.refresh = true
-//        }
-//
-//    }
-    
-    func getTopBarHeight(topEdge: CGFloat) -> CGFloat {
-        let progress = (-offset  + 0) / (settings.maxHeight - (settings.topHeaderHeight + topEdge))
-        return (progress < 0 ? 0 : (progress > 1 ? 1 : progress)) * settings.topHeaderHeight
+    /// get scroll progress from -1 to 1
+    func getProgress(topEdge: CGFloat) -> CGFloat {
+        let progress = (-offset  - 0) / (settings.maxHeight - (settings.minHeight + topEdge))
+        return (progress > 1 ? 1 : (progress < -1 ? -1 : progress) )
     }
-    
+    /// header height. it changes when scrolling from min to max height.
     func getHeaderHeight(topEdge: CGFloat) -> CGFloat {
-        let topHeight = settings.maxHeight + offset
-        return topHeight > (settings.topHeaderHeight + topEdge) ? topHeight : (settings.topHeaderHeight + topEdge)
+        let topHeight = settings.maxHeight + offset //+ topEdge
+        return topHeight > (settings.minHeight + topEdge) ? topHeight : (settings.minHeight + topEdge)
     }
-    
-    func getOpacity() -> CGFloat {
-        if settings.enableOpacity {
-            let progress = -offset * settings.progressRatio
-            let opacity = 1 - progress
-            return offset < 0 ? opacity : 1
-        }
-        return 1
+    /// top bar height. it depends on scroll progress and shows only when progress > 0.5
+    func getTopBarHeight(topEdge: CGFloat) -> CGFloat {
+        let progress = (-offset  + 0) / (settings.maxHeight - (settings.minHeight + topEdge))
+        return ( progress < 0 ? 0 : (progress > 1.5 ? 1 : (progress > 0.5 ? progress - 0.5 : 0) ) ) * (settings.maxHeight - settings.minHeight - topEdge)
     }
-    func getTopBarOpacity(topEdge: CGFloat) -> CGFloat {
-        let progress = (-offset  + 0) / (settings.maxHeight - (settings.topHeaderHeight + topEdge))
-        return progress
-    }
-    
+    /// cornerRadius for header
     func getCornerRadius(topEdge: CGFloat) -> CGFloat {
-        let progress = -offset / (settings.maxHeight - (settings.topHeaderHeight + topEdge))
+        let progress = -offset / (settings.maxHeight - (settings.minHeight + topEdge))
         let value = 1 - progress
         let radius = value * settings.cornerRadius
         return offset < 0 ? radius : settings.cornerRadius
     }
     
-//    func getRefreshSize(topEdge: CGFloat) -> CGFloat {
-//        let progress = -offset / (settings.maxHeight - (settings.topHeaderHeight + topEdge))
-//        //        let value = 1 - progress
-//        let value = 35 + abs(progress * settings.cornerRadius)
-//        return offset < 0 ? settings.cornerRadius : value
-//    }
-//    func getRotation() -> Double {
-//        let progress = min(offset / settings.refreshHeight, 1)
-//        let value = progress * 360
-//        return Double(value)
-//    }
+}
+
+// MARK: - Refresh button
+extension MTNavView {
+    
+    private func refreshButton(topEdge: CGFloat) -> some View {
+        let buttonHeight: CGFloat = 30
+        let dh: CGFloat = 10 // extra height shift for refresh buttton
+        
+        return ZStack {
+            
+            if offset < 100 {
+                Image(systemName: "goforward")
+                    .resizable()
+                    .foregroundColor(Color(UIColor.systemGray))
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: buttonHeight, height:  buttonHeight ) // * (getRotation() / 360 ) )
+                    .rotationEffect(Angle(degrees: getRotation()))
+                    .offset(y: offset >= 0 ? getProgress(topEdge: topEdge) * buttonHeight : 0)
+                    .padding(.top, -buttonHeight - dh)
+            } else {
+                ProgressView()
+                    .scaleEffect(2)
+                    .progressViewStyle(CircularProgressViewStyle(tint: Color(UIColor.systemGray)))
+                    .padding()
+                ////                        .frame(height: 100)
+                //                        .frame(maxWidth: .infinity, alignment: .center)
+            }
+        }
+    }
+    
+    func getRotation() -> Double {
+        let refreshHeight: CGFloat = settings.refreshHeight
+        let progress = min(offset / refreshHeight, 1)
+        let value = progress * 360
+        return Double(value)
+    }
+    //    func getRefreshSize(topEdge: CGFloat) -> CGFloat {
+    //        let progress = -offset / (settings.maxHeight - (settings.topHeaderHeight + topEdge))
+    //        //        let value = 1 - progress
+    //        let value = 35 + abs(progress * settings.cornerRadius)
+    //        return offset < 0 ? settings.cornerRadius : value
+    //    }
+    func refreshStatus(_ curOffset: CGFloat) {
+        if curOffset == 0 {
+            self.frozen = false
+        }
+        if curOffset >= settings.refreshHeight && !frozen {
+            self.frozen = true
+            self.refresh = true
+        }
+    }
 }
