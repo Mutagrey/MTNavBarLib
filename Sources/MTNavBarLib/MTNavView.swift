@@ -30,14 +30,16 @@ public struct MTNavSettings {
     let cornerRadius: CGFloat
     let refreshHeight: CGFloat
     let isRefreshable: Bool
+    let enableBlur: Bool
     let ignoreSafeArea: Bool = true
     
-    public init (minHeight: CGFloat = 80, maxHeight: CGFloat = UIScreen.main.bounds.height/2.3, cornerRadius: CGFloat = 0, refreshHeight: CGFloat = 120, isRefreshable: Bool = true) {
+    public init (minHeight: CGFloat = 80, maxHeight: CGFloat = UIScreen.main.bounds.height/2.3, cornerRadius: CGFloat = 0, refreshHeight: CGFloat = 120, isRefreshable: Bool = true, enableBlur: Bool = false) {
         self.minHeight = minHeight
         self.cornerRadius = cornerRadius
         self.refreshHeight = refreshHeight
         self.maxHeight = maxHeight
         self.isRefreshable = isRefreshable
+        self.enableBlur = enableBlur
     }
 }
 
@@ -118,7 +120,7 @@ extension MTNavView {
                 }
                 header
             }
-            .blur(radius: getProgress(topEdge: topEdge) < 0 ? -getProgress(topEdge: topEdge) * 10 : 0, opaque: true)
+            .blur(radius: settings.enableBlur ? (getProgress(topEdge: topEdge) < 0 ? -getProgress(topEdge: topEdge) * 10 : 0) : 0, opaque: true)
 //            .cornerRadius(getCornerRadius(topEdge: topEdge))
 //            .opacity(getOpacity())
             .frame(height: getHeaderHeight(topEdge: topEdge))
