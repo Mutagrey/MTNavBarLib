@@ -89,8 +89,8 @@ public struct ExampleMTNavBar: View {
 
 struct ExampleMTNavBar_Previews: PreviewProvider {
     static var previews: some View {
-        NavigationView{
+//        NavigationView{
             ExampleMTNavBar()
-        }
+//        }
     }
 }

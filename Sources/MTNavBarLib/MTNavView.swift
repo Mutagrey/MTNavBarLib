@@ -66,40 +66,44 @@ public struct MTNavView<Content: View, Header: View, TopBar: View>: View {
     }
     
     public var body: some View {
+        NavigationView {
             GeometryReader { proxy in
-                let topEdge = proxy.safeAreaInsets.top
-                ScrollView(.vertical, showsIndicators: false) {
-                    VStack(spacing: 0){
-                        headerView(topEdge: topEdge)
-                            .frame(height: settings.maxHeight)
-                            .offset(y: -offset)
-                            .zIndex(1)
-                            .id("TopNavBar")
-                        if settings.isRefreshable {
-                            refreshButton(topEdge: topEdge)
+                    let topEdge = proxy.safeAreaInsets.top
+                    ScrollView(.vertical, showsIndicators: false) {
+                        VStack(spacing: 0){
+                            headerView(topEdge: topEdge)
+                                .frame(height: settings.maxHeight)
+                                .offset(y: -offset)
+                                .zIndex(1)
+                                .id("TopNavBar")
+                            if settings.isRefreshable {
+                                refreshButton(topEdge: topEdge)
+                            }
+                            content
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
                         }
-                        content
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .modifier(OffsetModifier(offset: $offset, coordinateSpace: .named("SCROLL_Sticky_MTNavBar")))
                     }
-                    .modifier(OffsetModifier(offset: $offset, coordinateSpace: .named("SCROLL_Sticky_MTNavBar")))
+                    .coordinateSpace(name: "SCROLL_Sticky_MTNavBar")
+                    .overlay(topBarView(topEdge: topEdge), alignment: .top)
+                    .ignoresSafeArea(.all, edges: .top)
                 }
-                .coordinateSpace(name: "SCROLL_Sticky_MTNavBar")
-                .overlay(topBarView(topEdge: topEdge), alignment: .top)
-                .ignoresSafeArea(.all, edges: .top)
+                .navigationBarHidden(true)
+                .onChange(of: offset) { newValue in
+                    DispatchQueue.main.async {
+                        refreshStatus(offset)
+                    }
             }
-            .navigationBarHidden(true)
-            .onChange(of: offset) { newValue in
-                DispatchQueue.main.async {
-                    refreshStatus(offset)
-                }
-            }
+        }
     }
 }
 
 struct MTNavView_Previews: PreviewProvider {
     static var previews: some View {
-        NavigationView{
+        Group {
             ExampleMTNavBar()
+            ExampleMTNavBar()
+                .preferredColorScheme(.dark)
         }
     }
 }
@@ -183,8 +187,10 @@ extension MTNavView {
             } else {
                 if refresh {
                     ProgressView()
-                        .scaleEffect(1.4)
-                        .progressViewStyle(CircularProgressViewStyle(tint: Color(.red)))
+                        .scaleEffect(1)
+                        .progressViewStyle(CircularProgressViewStyle(tint: Color(UIColor.systemGray)))
+//                        .padding(10)
+//                        .background(Color(UIColor.systemFill).cornerRadius(10))
                         .padding(.top, dh)
                     // padding compensaction. It shows ProgressView when resfresh status activated
                         .padding(.top, offset <= settings.refreshHeight ? buttonHeight + dh : 0 )
