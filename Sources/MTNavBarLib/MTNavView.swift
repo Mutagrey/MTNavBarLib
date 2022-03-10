@@ -32,14 +32,16 @@ public struct MTNavSettings {
     let isRefreshable: Bool
     let enableBlur: Bool
     let ignoreSafeArea: Bool = true
+    let scrollUpID: String
     
-    public init (minHeight: CGFloat = 80, maxHeight: CGFloat = UIScreen.main.bounds.height/2.3, cornerRadius: CGFloat = 0, refreshHeight: CGFloat = 120, isRefreshable: Bool = true, enableBlur: Bool = false) {
+    public init (minHeight: CGFloat = 80, maxHeight: CGFloat = UIScreen.main.bounds.height/2.3, cornerRadius: CGFloat = 0, refreshHeight: CGFloat = 120, isRefreshable: Bool = true, enableBlur: Bool = false, scrollUpID: String = "SCROLL_TO_TOP") {
         self.minHeight = minHeight
         self.cornerRadius = cornerRadius
         self.refreshHeight = refreshHeight
         self.maxHeight = maxHeight
         self.isRefreshable = isRefreshable
         self.enableBlur = enableBlur
+        self.scrollUpID = scrollUpID
     }
 }
 
@@ -75,7 +77,7 @@ public struct MTNavView<Content: View, Header: View, TopBar: View>: View {
                                 .frame(height: settings.maxHeight)
                                 .offset(y: -offset)
                                 .zIndex(1)
-                                .id("TopNavBar")
+                                .id(settings.scrollUpID)
                             if settings.isRefreshable {
                                 refreshButton(topEdge: topEdge)
                             }
