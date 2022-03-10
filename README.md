@@ -4,6 +4,7 @@
 with `ScrollView` content and Stickie Header TopBar
 
 ### Example
+   ```
     var images = ["1", "2", "3", "4", "5", "6"]
         MTNavView(settings: .init(), offset: $offset, refresh: $refresh) {
             TabView{
@@ -58,3 +59,4 @@ with `ScrollView` content and Stickie Header TopBar
             .padding()
         }
         .background(Color(UIColor.secondarySystemBackground))
+        ```

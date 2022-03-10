@@ -44,9 +44,6 @@ public struct MTNavSettings {
 /// `MTNavView` represents custom `NavigationView`
 /// with `ScrollView` content and Stickie Header with TopBar
 ///
-/// The following example shows how to use it:
-///
-///
 public struct MTNavView<Content: View, Header: View, TopBar: View>: View {
     let content: Content
     let header: Header

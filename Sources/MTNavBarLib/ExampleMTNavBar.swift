@@ -40,7 +40,6 @@ public struct ExampleMTNavBar: View {
 //                    .frame(width: geo.frame(in: .global).width, height: geo.frame(in: .global).height, alignment: .center)
 //                    .cornerRadius(0)
 //            }
-            
         } topBar: {
             HStack {
                 Image("4", bundle: .module)
@@ -52,14 +51,13 @@ public struct ExampleMTNavBar: View {
                 VStack(alignment: .leading, spacing: 4.0){
                     Text("Title")
                         .font(.title2)
-    //                    .padding()
                     Text("Subtitle")
                         .font(.title3)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding()
-
+            
         } content: {
             LazyVStack{
                 ForEach(0 ..< 50) { item in
@@ -75,14 +73,13 @@ public struct ExampleMTNavBar: View {
                             .frame(height: 100)
                             .background(Color(UIColor.secondarySystemFill))
                             .cornerRadius(20)
-//                            .padding(.horizontal)
                     }
                 }
             }
             .padding()
         }
         .background(Color(UIColor.secondarySystemBackground))
-
+        
     }
     
 }
