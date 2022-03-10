@@ -68,8 +68,8 @@ public struct MTNavView<Content: View, Header: View, TopBar: View>: View {
     }
     
     public var body: some View {
-        ScrollViewReader { scroll in
-            NavigationView {
+        NavigationView {
+            ScrollViewReader { scroll in
                 GeometryReader { proxy in
                     let topEdge = proxy.safeAreaInsets.top
                     ScrollView(.vertical, showsIndicators: false) {
@@ -91,16 +91,17 @@ public struct MTNavView<Content: View, Header: View, TopBar: View>: View {
                     .overlay(topBarView(topEdge: topEdge), alignment: .top)
                     .ignoresSafeArea(.all, edges: .top)
                 }
-                .navigationBarTitleDisplayMode(.inline)
-                .navigationBarHidden(true)
-                
+
+                .overlay(scrollUpButton(proxy: scroll).opacity(settings.enableScrollUpButton ? 1 : 0), alignment: .bottomTrailing)
+
                 .onChange(of: offset) { newValue in
                     DispatchQueue.main.async {
                         refreshStatus(offset)
                     }
                 }
             }
-            .overlay(scrollUpButton(proxy: scroll).opacity(settings.enableScrollUpButton ? 1 : 0), alignment: .bottomTrailing)
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarHidden(true)
         }
     }
 }
@@ -233,7 +234,7 @@ extension MTNavView {
 
         Image(systemName: "chevron.up")
 //            .resizable()
-            .font(.caption)
+            .font(.headline)
             .padding()
             .background(Color(UIColor.secondarySystemFill))
             .overlay(Circle().stroke(lineWidth: 0.5))
