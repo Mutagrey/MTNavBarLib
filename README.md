@@ -1,12 +1,43 @@
-# MTNavBarLib
+# _MTNavBarLib_
+##### This is the custom SwifUI `NavigationView` with sticky scrollable header.
+### Features
+- Sticky header
+- Scalable and Scrollable header
+- Custom `NavigationView`
+- Drag and drop markdown and HTML files into Dillinger
+- Export documents as Markdown, HTML and PDF
+### Requirements
+- iOS 14
+- Swift 5.5+
+- Xcode 13.0+
+### Installation
 
-`MTNavView` represents custom SwiftUI `NavigationView`
-with `ScrollView` content and Stickie Header TopBar
+The preferred way of installing SwiftUIX is via the [Swift Package Manager](https://www.swift.org/package-manager/).
 
-### Example
-   ```
+In Xcode, open your project and navigate to File → Swift Packages → Add Package Dependency...
+Paste the repository URL (https://github.com/Mutagrey/MTNavBarLib.git) and click Next.
+
+ # How to use
+Add `MTNavView` with `MTNavSettings`
+
+#### MTNavSettings
+``` swift
+MTNavSettings(minHeight: <CGFloat>, maxHeight: <CGFloat>, cornerRadius: <CGFloat>, refreshHeight: <CGFloat>, isRefreshable: <Bool>)
+```
+#### MTNavView
+``` swift
+MTNavView(settings: <MTNavSettings>, offset: Binding<CGFloat>, refresh: Binding<Bool>) {
+        // Header
+    } topBar: {
+        // TopBar
+    } content: {
+        // Scrollable content
+}
+```
+#### Example
+ ``` swift
     var images = ["1", "2", "3", "4", "5", "6"]
-        MTNavView(settings: .init(), offset: $offset, refresh: $refresh) {
+    MTNavView(settings: .init(), offset: $offset, refresh: $refresh) {
             TabView{
                 ForEach(images, id:\.self) { item in
                     GeometryReader{ geo in
@@ -59,4 +90,8 @@ with `ScrollView` content and Stickie Header TopBar
             .padding()
         }
         .background(Color(UIColor.secondarySystemBackground))
-        ```
+```
+
+## License
+
+**Free to use**
