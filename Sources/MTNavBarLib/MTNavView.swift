@@ -68,7 +68,7 @@ public struct MTNavView<Content: View, Header: View, TopBar: View>: View {
     }
     
     public var body: some View {
-//        NavigationView {
+        NavigationView {
             ScrollViewReader { scroll in
                 GeometryReader { proxy in
                     let topEdge = proxy.safeAreaInsets.top
@@ -100,10 +100,10 @@ public struct MTNavView<Content: View, Header: View, TopBar: View>: View {
                     }
                 }
             }
-//            .navigationBarTitleDisplayMode(.inline)
-//            .navigationTitle("Champions")
-//            .navigationBarHidden(true)
-//        }
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitle("Champions")
+            .navigationBarHidden(true)
+        }
     }
 }
 
