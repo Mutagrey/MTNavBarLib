@@ -184,7 +184,7 @@ extension MTNavView {
                 if refresh {
                     ProgressView()
                         .scaleEffect(1.4)
-                        .progressViewStyle(CircularProgressViewStyle(tint: Color(UIColor.systemGray)))
+                        .progressViewStyle(CircularProgressViewStyle(tint: Color(UIColor.red)))
                         .padding(.top, dh)
                     // padding compensaction. It shows ProgressView when resfresh status activated
                         .padding(.top, offset <= settings.refreshHeight ? buttonHeight + dh : 0 )
