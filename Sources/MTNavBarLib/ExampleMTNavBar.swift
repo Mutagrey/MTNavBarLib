@@ -75,10 +75,11 @@ public struct ExampleMTNavBar: View {
                             .frame(height: 100)
                             .background(Color(UIColor.secondarySystemFill))
                             .cornerRadius(20)
-                            .padding(.horizontal)
+//                            .padding(.horizontal)
                     }
                 }
             }
+            .padding()
         }
         .background(Color(UIColor.secondarySystemBackground))
 

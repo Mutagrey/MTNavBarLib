@@ -28,14 +28,15 @@ public struct NavSettings {
 
     let cornerRadius: CGFloat
     let refreshHeight: CGFloat
-    let ignoreSafeArea: Bool
+    let isRefreshable: Bool
+    let ignoreSafeArea: Bool = true
     
-    public init (minHeight: CGFloat = 80, maxHeight: CGFloat = UIScreen.main.bounds.height/2.3, cornerRadius: CGFloat = 0, refreshHeight: CGFloat = 140, ignoreSafeArea: Bool = true) {
+    public init (minHeight: CGFloat = 80, maxHeight: CGFloat = UIScreen.main.bounds.height/2.3, cornerRadius: CGFloat = 0, refreshHeight: CGFloat = 120, isRefreshable: Bool = true) {
         self.minHeight = minHeight
         self.cornerRadius = cornerRadius
         self.refreshHeight = refreshHeight
-        self.maxHeight = maxHeight //+ (UIApplication.shared.windows.first?.safeAreaInsets.top ?? 40)
-        self.ignoreSafeArea = ignoreSafeArea
+        self.maxHeight = maxHeight
+        self.isRefreshable = isRefreshable
     }
 }
 
@@ -74,7 +75,9 @@ public struct MTNavView<Content: View, Header: View, TopBar: View>: View {
                             .offset(y: -offset)
                             .zIndex(1)
                             .id("TopNavBar")
-                        refreshButton(topEdge: topEdge)
+                        if settings.isRefreshable {
+                            refreshButton(topEdge: topEdge)
+                        }
                         content
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
@@ -119,7 +122,6 @@ extension MTNavView {
             .frame(height: getHeaderHeight(topEdge: topEdge))
             Spacer(minLength: 0)
         }
-        
     }
     
     private func topBarView(topEdge: CGFloat) -> some View {
@@ -128,7 +130,7 @@ extension MTNavView {
                 .padding(.top, topEdge )
                 .background(
                     BlurView(effect: .systemUltraThinMaterial)
-                        .blur(radius: getProgress(topEdge: topEdge) < 0 ? -getProgress(topEdge: topEdge) * 10 : 0, opaque: true)
+                        .blur(radius: getProgress(topEdge: topEdge) > 0 ? getProgress(topEdge: topEdge) * 10 : 0, opaque: true)
                 )
                 .opacity(getProgress(topEdge: topEdge))
                 .offset(y: geo.frame(in: .global).height * getProgress(topEdge: topEdge) - geo.frame(in: .global).height)
@@ -160,50 +162,46 @@ extension MTNavView {
         let radius = value * settings.cornerRadius
         return offset < 0 ? radius : settings.cornerRadius
     }
-    
 }
 
 // MARK: - Refresh button
 extension MTNavView {
-    
+    /// Refresh Button View
     private func refreshButton(topEdge: CGFloat) -> some View {
         let buttonHeight: CGFloat = 30
         let dh: CGFloat = 10 // extra height shift for refresh buttton
         
         return ZStack {
-            
-            if offset < 100 {
+            if offset > 0 && offset < settings.refreshHeight && !refresh {
                 Image(systemName: "goforward")
                     .resizable()
                     .foregroundColor(Color(UIColor.systemGray))
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: buttonHeight, height:  buttonHeight ) // * (getRotation() / 360 ) )
                     .rotationEffect(Angle(degrees: getRotation()))
-                    .offset(y: offset >= 0 ? getProgress(topEdge: topEdge) * buttonHeight : 0)
-                    .padding(.top, -buttonHeight - dh)
+                    .frame(width: buttonHeight, height:  buttonHeight)
+                    .offset(y: offset < 0 ? getProgress(topEdge: topEdge) * buttonHeight : 0)
             } else {
-                ProgressView()
-                    .scaleEffect(2)
-                    .progressViewStyle(CircularProgressViewStyle(tint: Color(UIColor.systemGray)))
-                    .padding()
-                ////                        .frame(height: 100)
-                //                        .frame(maxWidth: .infinity, alignment: .center)
+                if refresh {
+                    ProgressView()
+                        .scaleEffect(1.4)
+                        .progressViewStyle(CircularProgressViewStyle(tint: Color(UIColor.systemGray)))
+                        .padding(.top, dh)
+                    // padding compensaction. It shows ProgressView when resfresh status activated
+                        .padding(.top, offset <= settings.refreshHeight ? buttonHeight + dh : 0 )
+                }
             }
         }
+        // It hides refreshButton, until refresh status is false
+        .padding(.top, -buttonHeight - dh )
     }
-    
+    /// Rotation image
     func getRotation() -> Double {
         let refreshHeight: CGFloat = settings.refreshHeight
         let progress = min(offset / refreshHeight, 1)
         let value = progress * 360
         return Double(value)
     }
-    //    func getRefreshSize(topEdge: CGFloat) -> CGFloat {
-    //        let progress = -offset / (settings.maxHeight - (settings.topHeaderHeight + topEdge))
-    //        //        let value = 1 - progress
-    //        let value = 35 + abs(progress * settings.cornerRadius)
-    //        return offset < 0 ? settings.cornerRadius : value
-    //    }
+    /// Redresh status. Its frozen when
     func refreshStatus(_ curOffset: CGFloat) {
         if curOffset == 0 {
             self.frozen = false
