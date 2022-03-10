@@ -33,13 +33,6 @@ public struct ExampleMTNavBar: View {
                 }
             }
             .tabViewStyle(.page(indexDisplayMode: .always))
-//            GeometryReader{ geo in
-//                Image("6", bundle: .module)
-//                    .resizable()
-//                    .aspectRatio(contentMode: .fill)
-//                    .frame(width: geo.frame(in: .global).width, height: geo.frame(in: .global).height, alignment: .center)
-//                    .cornerRadius(0)
-//            }
         } topBar: {
             HStack {
                 Image("4", bundle: .module)

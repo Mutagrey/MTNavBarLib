@@ -32,16 +32,16 @@ public struct MTNavSettings {
     let isRefreshable: Bool
     let enableBlur: Bool
     let ignoreSafeArea: Bool = true
-    let scrollUpID: String
+    let enableScrollUpButton: Bool
     
-    public init (minHeight: CGFloat = 80, maxHeight: CGFloat = UIScreen.main.bounds.height/2.3, cornerRadius: CGFloat = 0, refreshHeight: CGFloat = 120, isRefreshable: Bool = true, enableBlur: Bool = false, scrollUpID: String = "SCROLL_TO_TOP") {
+    public init (minHeight: CGFloat = 80, maxHeight: CGFloat = UIScreen.main.bounds.height/2.3, cornerRadius: CGFloat = 0, refreshHeight: CGFloat = 120, isRefreshable: Bool = true, enableBlur: Bool = false, enableScrollUpButton: Bool = true) {
         self.minHeight = minHeight
         self.cornerRadius = cornerRadius
         self.refreshHeight = refreshHeight
         self.maxHeight = maxHeight
         self.isRefreshable = isRefreshable
         self.enableBlur = enableBlur
-        self.scrollUpID = scrollUpID
+        self.enableScrollUpButton = enableScrollUpButton
     }
 }
 
@@ -68,8 +68,9 @@ public struct MTNavView<Content: View, Header: View, TopBar: View>: View {
     }
     
     public var body: some View {
-        NavigationView {
-            GeometryReader { proxy in
+        ScrollViewReader { scroll in
+            NavigationView {
+                GeometryReader { proxy in
                     let topEdge = proxy.safeAreaInsets.top
                     ScrollView(.vertical, showsIndicators: false) {
                         VStack(spacing: 0){
@@ -77,7 +78,7 @@ public struct MTNavView<Content: View, Header: View, TopBar: View>: View {
                                 .frame(height: settings.maxHeight)
                                 .offset(y: -offset)
                                 .zIndex(1)
-                                .id(settings.scrollUpID)
+                                .id("SCROLL_TO_TOP")
                             if settings.isRefreshable {
                                 refreshButton(topEdge: topEdge)
                             }
@@ -90,12 +91,16 @@ public struct MTNavView<Content: View, Header: View, TopBar: View>: View {
                     .overlay(topBarView(topEdge: topEdge), alignment: .top)
                     .ignoresSafeArea(.all, edges: .top)
                 }
+                .navigationBarTitleDisplayMode(.inline)
                 .navigationBarHidden(true)
+                
                 .onChange(of: offset) { newValue in
                     DispatchQueue.main.async {
                         refreshStatus(offset)
                     }
+                }
             }
+            .overlay(scrollUpButton(proxy: scroll).opacity(settings.enableScrollUpButton ? 1 : 0), alignment: .bottomTrailing)
         }
     }
 }
@@ -218,5 +223,30 @@ extension MTNavView {
             self.frozen = true
             self.refresh = true
         }
+    }
+}
+
+// MARK: - SrollUp Button
+extension MTNavView {
+    
+    private func scrollUpButton(proxy: ScrollViewProxy) -> some View {
+
+        Image(systemName: "chevron.up")
+//            .resizable()
+            .font(.caption)
+            .padding()
+            .background(Color(UIColor.secondarySystemFill))
+            .overlay(Circle().stroke(lineWidth: 0.5))
+            .clipShape(Circle())
+//            .shadow(radius: 5, x: 5, y: 5)
+//            .shadow(radius: 5, x: -5, y: -5)
+            .padding()
+            .offset(y: 130 + max(-130,offset) )
+            .transition(.move(edge: .bottom))
+            .onTapGesture {
+                withAnimation(.spring()) {
+                    proxy.scrollTo("SCROLL_TO_TOP", anchor: .top)
+                }
+            }
     }
 }
