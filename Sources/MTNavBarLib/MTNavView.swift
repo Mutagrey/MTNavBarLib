@@ -101,6 +101,7 @@ public struct MTNavView<Content: View, Header: View, TopBar: View>: View {
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
+            .navigationTitle("Champions")
             .navigationBarHidden(true)
         }
     }
