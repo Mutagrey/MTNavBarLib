@@ -10,18 +10,19 @@ import SwiftUI
 /// `NavSettings` settings
 ///
 /// ```
-/// public struct NavSettings {
+/// public struct MTNavSettings {
 ///
 ///     let minHeight: CGFloat = 80
 ///     let maxHeight: CGFloat = UIScreen.main.bounds.height/2.3
 ///     let cornerRadius: CGFloat = 10
 ///     let refreshHeight: CGFloat = 140
 ///     let ignoreSafeArea: Bool = true
+///     isRefreshable: Bool = true
 ///
 /// }
 ///```
 ///
-public struct NavSettings {
+public struct MTNavSettings {
     
     let minHeight: CGFloat
     let maxHeight: CGFloat
@@ -50,13 +51,13 @@ public struct MTNavView<Content: View, Header: View, TopBar: View>: View {
     let content: Content
     let header: Header
     let topBar: TopBar
-    var settings: NavSettings = .init()
+    var settings: MTNavSettings = .init()
 
     @Binding var offset: CGFloat
     @Binding var refresh: Bool
     @State private var frozen: Bool = false
     
-    public init(settings: NavSettings, offset: Binding<CGFloat>, refresh: Binding<Bool>, @ViewBuilder header: () -> Header, @ViewBuilder topBar: () -> TopBar, @ViewBuilder content: () -> Content) {
+    public init(settings: MTNavSettings, offset: Binding<CGFloat>, refresh: Binding<Bool>, @ViewBuilder header: () -> Header, @ViewBuilder topBar: () -> TopBar, @ViewBuilder content: () -> Content) {
         self.content = content()
         self.header = header()
         self.topBar = topBar()
