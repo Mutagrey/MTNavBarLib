@@ -69,8 +69,9 @@ public struct MTNavView<Content: View, Header: View, TopBar: View>: View {
     
     public var body: some View {
         NavigationView {
-            ScrollViewReader { scroll in
-                GeometryReader { proxy in
+            GeometryReader { proxy in
+                ScrollViewReader { scroll in
+                    
                     let topEdge = proxy.safeAreaInsets.top
                     ScrollView(.vertical, showsIndicators: false) {
                         VStack(spacing: 0){
@@ -90,10 +91,9 @@ public struct MTNavView<Content: View, Header: View, TopBar: View>: View {
                     .coordinateSpace(name: "SCROLL_Sticky_MTNavBar")
                     .overlay(topBarView(topEdge: topEdge), alignment: .top)
                     .ignoresSafeArea(.all, edges: .top)
+                    .overlay(scrollUpButton(proxy: scroll).opacity(settings.enableScrollUpButton ? 1 : 0), alignment: .bottomTrailing)
                 }
-
-                .overlay(scrollUpButton(proxy: scroll).opacity(settings.enableScrollUpButton ? 1 : 0), alignment: .bottomTrailing)
-
+                
                 .onChange(of: offset) { newValue in
                     DispatchQueue.main.async {
                         refreshStatus(offset)
@@ -101,10 +101,14 @@ public struct MTNavView<Content: View, Header: View, TopBar: View>: View {
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
-            .navigationBarTitle("Champions")
+//            .navigationBarTitle("Champions")
             .navigationBarHidden(true)
         }
     }
+    
+//    public func backgroundMTNavBar<Background: View>(@ViewBuilder bg: () -> Background) -> some View {
+//        return bg()
+//    }
 }
 
 struct MTNavView_Previews: PreviewProvider {
@@ -116,6 +120,7 @@ struct MTNavView_Previews: PreviewProvider {
         }
     }
 }
+
 
 // MARK: - Elements View
 extension MTNavView {
@@ -181,33 +186,35 @@ extension MTNavView {
 extension MTNavView {
     /// Refresh Button View
     private func refreshButton(topEdge: CGFloat) -> some View {
-        let buttonHeight: CGFloat = 30
-        let dh: CGFloat = 10 // extra height shift for refresh buttton
-        
-        return ZStack {
-            if offset > 0 && offset < settings.refreshHeight && !refresh {
-                Image(systemName: "goforward")
-                    .resizable()
-                    .foregroundColor(Color(UIColor.systemGray))
-                    .aspectRatio(contentMode: .fit)
-                    .rotationEffect(Angle(degrees: getRotation()))
-                    .frame(width: buttonHeight, height:  buttonHeight)
-                    .offset(y: offset < 0 ? getProgress(topEdge: topEdge) * buttonHeight : 0)
-            } else {
-                if refresh {
-                    ProgressView()
-                        .scaleEffect(1)
-                        .progressViewStyle(CircularProgressViewStyle(tint: Color(UIColor.systemGray)))
-//                        .padding(10)
-//                        .background(Color(UIColor.systemFill).cornerRadius(10))
-                        .padding(.top, dh)
-                    // padding compensaction. It shows ProgressView when resfresh status activated
-                        .padding(.top, offset <= settings.refreshHeight ? buttonHeight + dh : 0 )
+        ZStack {
+            let buttonHeight: CGFloat = 30
+            let dh: CGFloat = 10 // extra height shift for refresh buttton
+            Group{
+                if offset > 0 && offset < settings.refreshHeight && !refresh {
+                    Image(systemName: "goforward")
+                        .resizable()
+                        .foregroundColor(Color(UIColor.systemGray))
+                        .aspectRatio(contentMode: .fit)
+                        .rotationEffect(Angle(degrees: getRotation()))
+                        .padding(.top, -buttonHeight - dh)
+                        .frame(width: buttonHeight, height: getRefreshButtonHeight(maxHeight: buttonHeight)  )
+//                        .offset(y: offset < 0 ? getProgress(topEdge: topEdge) * buttonHeight : getProgress(topEdge: topEdge) * buttonHeight)
+                        
+                } else {
+                    if refresh {
+                        ProgressView()
+                            .scaleEffect(1)
+                            .progressViewStyle(CircularProgressViewStyle(tint: Color(UIColor.systemGray)))
+//                            .padding(10)
+//                            .background(Color(UIColor.systemFill).cornerRadius(10))
+                            .padding(.top, dh)
+                        // padding compensaction. It shows ProgressView when resfresh status activated
+                            .padding(.top, offset <= settings.refreshHeight ? buttonHeight + dh : 0 )
+                            .padding(.top, -buttonHeight - dh )
+                    }
                 }
             }
         }
-        // It hides refreshButton, until refresh status is false
-        .padding(.top, -buttonHeight - dh )
     }
     /// Rotation image
     func getRotation() -> Double {
@@ -225,6 +232,11 @@ extension MTNavView {
             self.frozen = true
             self.refresh = true
         }
+    }
+    /// Get refresh button height
+    func getRefreshButtonHeight(maxHeight: CGFloat) -> CGFloat {
+        let progress = min(offset / maxHeight, 1)
+        return offset > 0 ? progress : 0
     }
 }
 

@@ -70,8 +70,13 @@ public struct ExampleMTNavBar: View {
                 }
             }
             .padding()
+//            .background(Color(UIColor.green))
         }
-        .background(Color(UIColor.secondarySystemBackground))
+//        .backgroundMTNavBar(bg: {
+//            Color.red
+//        })
+//        .background(Color(UIColor.green))
+        
         
     }
     

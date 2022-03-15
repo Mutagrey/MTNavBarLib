@@ -4,8 +4,7 @@
 - Sticky header
 - Scalable and Scrollable header
 - Custom `NavigationView`
-- Drag and drop markdown and HTML files into Dillinger
-- Export documents as Markdown, HTML and PDF
+
 ### Requirements
 - iOS 14
 - Swift 5.5+
@@ -18,8 +17,12 @@ In Xcode, open your project and navigate to File → Swift Packages → Add Pack
 Paste the repository URL (https://github.com/Mutagrey/MTNavBarLib.git) and click Next.
 
  # How to use
-Add `MTNavView` with `MTNavSettings`
 
+#### Import MTNavbarLib
+``` swift
+Import MTNavbarLib
+```
+Add `MTNavView` with `MTNavSettings`
 #### MTNavSettings
 ``` swift
 MTNavSettings(minHeight: <CGFloat>, maxHeight: <CGFloat>, cornerRadius: <CGFloat>, refreshHeight: <CGFloat>, isRefreshable: <Bool>)
